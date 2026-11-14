@@ -3,63 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BD Bus Simulator HD - ঢাকা মেট্রো রুট</title>
+    <title>BD Bus Simulator Pro - Dhaka Route</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', sans-serif; }
-        body { overflow: hidden; background: #cbd5e1; touch-action: none; }
+        body { overflow: hidden; background: #0f172a; touch-action: none; }
         #game-container { width: 100vw; height: 100vh; position: relative; }
+        
+        /* Top HUD & Minimap */
         #hud {
-            position: absolute; top: 12px; left: 12px; right: 12px;
+            position: absolute; top: 10px; left: 10px; right: 10px;
             display: flex; justify-content: space-between; align-items: flex-start;
             pointer-events: none; z-index: 10;
         }
         .hud-box {
-            background: rgba(15, 23, 42, 0.82); color: #fff;
-            padding: 8px 14px; border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            font-size: 13px; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            background: rgba(15, 23, 42, 0.85); color: #fff;
+            padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 11px; backdrop-filter: blur(4px);
         }
-        .hud-title { color: #facc15; font-weight: bold; font-size: 14px; margin-bottom: 2px; }
-        .bar-bg { width: 120px; height: 8px; background: #334155; border-radius: 4px; overflow: hidden; margin-top: 5px; }
-        #health-bar { width: 100%; height: 100%; background: #22c55e; transition: width 0.2s; }
-        .mini-btn {
-            pointer-events: auto; background: rgba(15, 23, 42, 0.85); color: #fff;
-            border: 1px solid #facc15; padding: 8px 12px; border-radius: 8px;
-            font-size: 12px; font-weight: bold; cursor: pointer;
+        .hud-title { color: #facc15; font-weight: bold; font-size: 12px; }
+        .bar-container { width: 100px; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; margin-top: 3px; }
+        .bar-fill { width: 100%; height: 100%; background: #22c55e; transition: width 0.2s; }
+        
+        /* Minimap Canvas */
+        #minimap-canvas {
+            width: 110px; height: 110px; background: rgba(15, 23, 42, 0.9);
+            border: 2px solid #facc15; border-radius: 50%; pointer-events: auto;
         }
+
         #warning-msg {
-            position: absolute; top: 80px; left: 50%; transform: translateX(-50%);
-            background: rgba(220, 38, 38, 0.92); color: #fff; padding: 6px 16px;
-            border-radius: 20px; font-size: 13px; font-weight: bold;
+            position: absolute; top: 65px; left: 50%; transform: translateX(-50%);
+            background: rgba(220, 38, 38, 0.95); color: #fff; padding: 5px 14px;
+            border-radius: 20px; font-size: 12px; font-weight: bold;
             opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 15;
+            white-space: nowrap;
         }
+
+        /* Two-Hand Controls (Steering on Left, Pedals on Right) */
         #controls {
-            position: absolute; bottom: 18px; left: 16px; right: 16px;
+            position: absolute; bottom: 12px; left: 12px; right: 12px;
             display: flex; justify-content: space-between; align-items: flex-end;
             pointer-events: none; z-index: 10;
         }
-        .control-group { display: flex; gap: 12px; pointer-events: auto; }
-        .ctrl-btn {
-            width: 66px; height: 66px; border-radius: 50%;
-            background: rgba(15, 23, 42, 0.78); border: 2px solid rgba(255, 255, 255, 0.5);
-            color: #fff; font-size: 22px; font-weight: bold;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.45);
+        
+        /* Steering Wheel UI */
+        #steering-container {
+            width: 150px; height: 150px; pointer-events: auto;
+            position: relative; display: flex; align-items: center; justify-content: center;
         }
-        .ctrl-btn span { font-size: 10px; margin-top: 2px; }
-        .ctrl-btn:active, .ctrl-btn.active { background: #facc15; color: #000; transform: scale(0.94); }
-        .pedal-btn { width: 62px; height: 84px; border-radius: 14px; }
-        #btn-gas { border-color: #22c55e; }
-        #btn-brake { border-color: #ef4444; }
-        #btn-horn { width: 52px; height: 52px; border-color: #38bdf8; font-size: 18px; }
+        #steering-wheel {
+            width: 130px; height: 130px; border-radius: 50%;
+            background: rgba(30, 41, 59, 0.85); border: 5px solid #64748b;
+            position: absolute; display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform-origin: center;
+        }
+        #steering-inner {
+            width: 36px; height: 36px; border-radius: 50%; background: #facc15;
+            display: flex; align-items: center; justify-content: center; font-size: 14px; color: #000; font-weight: bold;
+        }
+        #steering-bar1 { position: absolute; width: 110px; height: 6px; background: #64748b; }
+        #steering-bar2 { position: absolute; width: 6px; height: 55px; background: #64748b; top: 65px; }
+
+        /* Right Pedals & Actions */
+        .right-group { display: flex; gap: 10px; align-items: flex-end; pointer-events: auto; }
+        .action-btns { display: flex; flex-direction: column; gap: 6px; }
+        .mini-btn {
+            background: rgba(15, 23, 42, 0.85); color: #fff; border: 1px solid #facc15;
+            padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;
+        }
+        .pedal {
+            width: 58px; height: 85px; border-radius: 10px; color: #fff; font-weight: bold;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            font-size: 11px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.3);
+        }
+        #btn-gas { background: rgba(34, 197, 94, 0.85); border-color: #22c55e; }
+        #btn-brake { background: rgba(239, 68, 68, 0.85); border-color: #ef4444; }
+        .pedal:active { transform: scale(0.94); filter: brightness(1.2); }
+
+        /* Game Over Modal */
         #game-over {
-            position: absolute; inset: 0; background: rgba(0, 0, 0, 0.85);
+            position: absolute; inset: 0; background: rgba(0, 0, 0, 0.88);
             display: none; flex-direction: column; align-items: center; justify-content: center;
             color: #fff; z-index: 30; text-align: center; padding: 20px;
         }
         #restart-btn {
-            background: #facc15; color: #000; border: none; padding: 12px 28px;
-            font-size: 16px; font-weight: bold; border-radius: 10px; margin-top: 15px;
+            background: #facc15; color: #000; border: none; padding: 10px 24px;
+            font-size: 15px; font-weight: bold; border-radius: 8px; margin-top: 12px; cursor: pointer;
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -69,428 +97,195 @@
 <div id="game-container">
     <div id="hud">
         <div class="hud-box">
-            <div class="hud-title">আরিফ পরিবহন (HD)</div>
-            <div>রুট: উত্তরা ➔ ফার্মগেট (মেট্রো রুট)</div>
+            <div class="hud-title">আরিফ পরিবহন (Pro)</div>
             <div>গতি: <span id="speed-val">0</span> km/h | দূরত্ব: <span id="dist-val">0.0</span> km</div>
-            <div class="bar-bg"><div id="health-bar"></div></div>
+            <div style="margin-top:2px;">ড্যামেজ:</div>
+            <div class="bar-container"><div id="health-bar" class="bar-fill"></div></div>
+            <div style="margin-top:2px;">ফুয়েল:</div>
+            <div class="bar-container"><div id="fuel-bar" class="bar-fill" style="background:#38bdf8;"></div></div>
         </div>
-        <button class="mini-btn" id="btn-cam">📷 ভিউ</button>
+        <canvas id="minimap-canvas" width="110" height="110"></canvas>
     </div>
 
-    <div id="warning-msg">⚠️ সামনে গর্ত / ভাঙা রাস্তা!</div>
+    <div id="warning-msg">⚠️ সতর্কবার্তা!</div>
 
     <div id="controls">
-        <div class="control-group">
-            <div class="ctrl-btn" id="btn-left">◀<span>বামে</span></div>
-            <div class="ctrl-btn" id="btn-right">▶<span>ডানে</span></div>
+        <!-- Two-hand Steering Wheel -->
+        <div id="steering-container">
+            <div id="steering-wheel">
+                <div id="steering-bar1"></div>
+                <div id="steering-bar2"></div>
+                <div id="steering-inner">🛞</div>
+            </div>
         </div>
-        <div class="control-group" style="align-items: center;">
-            <div class="ctrl-btn" id="btn-horn">📯<span>হর্ন</span></div>
-            <div class="ctrl-btn pedal-btn" id="btn-brake">🛑<span>ব্রেক</span></div>
-            <div class="ctrl-btn pedal-btn" id="btn-gas">🚀<span>গ্যাস</span></div>
+
+        <div class="right-group">
+            <div class="action-btns">
+                <button class="mini-btn" id="btn-horn">📯 হর্ন</button>
+                <button class="mini-btn" id="btn-cam">📷 ক্যামেরা</button>
+            </div>
+            <div class="pedal" id="btn-brake">🛑<span>ব্রেক</span></div>
+            <div class="pedal" id="btn-gas">🚀<span>গ্যাস</span></div>
         </div>
     </div>
 
     <div id="game-over">
-        <h1 style="color:#ef4444;">দুর্ঘটনা ঘটেছে!</h1>
-        <p id="final-stats" style="margin-top:8px;">আপনি 0.0 কিমি পথ অতিক্রম করেছেন।</p>
-        <button id="restart-btn" onclick="location.reload()">আবার খেলুন</button>
+        <h1 id="go-title" style="color:#ef4444; font-size:26px;">গেম ওভার!</h1>
+        <p id="go-desc" style="margin-top:6px; font-size:14px; color:#cbd5e1;"></p>
+        <button id="restart-btn" onclick="location.reload()">পুনরায় খেলুন</button>
     </div>
 </div>
 
 <script>
-    // --- Procedural High-Detail Textures (To match realistic screenshot look) ---
-    function createAsphaltTexture() {
-        const c = document.createElement('canvas');
-        c.width = 512; c.height = 512;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = '#3b4048';
-        ctx.fillRect(0, 0, 512, 512);
-        // Noise grain for realistic road pitch
-        for (let i = 0; i < 18000; i++) {
-            const v = 45 + Math.random() * 35;
-            ctx.fillStyle = `rgb(${v},${v},${v+4})`;
-            ctx.fillRect(Math.random() * 512, Math.random() * 512, 2, 2);
-        }
-        // Tire wear tracks
-        ctx.fillStyle = 'rgba(20, 22, 26, 0.25)';
-        ctx.fillRect(70, 0, 45, 512);
-        ctx.fillRect(190, 0, 45, 512);
-        ctx.fillRect(310, 0, 45, 512);
-        ctx.fillRect(410, 0, 45, 512);
-        const tex = new THREE.CanvasTexture(c);
-        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(1, 35);
-        return tex;
-    }
-
-    function createSidewalkTexture() {
-        const c = document.createElement('canvas');
-        c.width = 256; c.height = 256;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = '#d6d3d1';
-        ctx.fillRect(0, 0, 256, 256);
-        ctx.strokeStyle = '#a8a29e';
-        ctx.lineWidth = 3;
-        for (let y = 0; y < 256; y += 32) {
-            ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(256, y); ctx.stroke();
-        }
-        for (let x = 0; x < 256; x += 64) {
-            ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, 256); ctx.stroke();
-        }
-        // Tactile yellow/brown paving blocks like screenshot
-        ctx.fillStyle = '#b45309';
-        for (let y = 16; y < 256; y += 64) {
-            ctx.fillRect(180, y, 28, 28);
-        }
-        const tex = new THREE.CanvasTexture(c);
-        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        tex.repeat.set(2, 80);
-        return tex;
-    }
-
-    function createBuildingTexture(baseColor) {
-        const c = document.createElement('canvas');
-        c.width = 256; c.height = 512;
-        const ctx = c.getContext('2d');
-        ctx.fillStyle = baseColor;
-        ctx.fillRect(0, 0, 256, 512);
-        // Windows grid with depth & balconies
-        for (let y = 24; y < 480; y += 44) {
-            for (let x = 20; x < 220; x += 48) {
-                ctx.fillStyle = '#1e293b';
-                ctx.fillRect(x, y, 30, 26);
-                ctx.fillStyle = '#38bdf8';
-                ctx.fillRect(x + 3, y + 3, 24, 10);
-                // Balcony railing
-                ctx.fillStyle = 'rgba(0,0,0,0.35)';
-                ctx.fillRect(x - 2, y + 26, 34, 5);
-            }
-        }
-        return new THREE.CanvasTexture(c);
-    }
-
+    // --- Textures & Visual Helpers ---
     function createBusBackTexture() {
-        const c = document.createElement('canvas');
-        c.width = 512; c.height = 512;
+        const c = document.createElement('canvas'); c.width = 512; c.height = 512;
         const ctx = c.getContext('2d');
-        // Yellow body
-        ctx.fillStyle = '#facc15';
-        ctx.fillRect(0, 0, 512, 512);
-        // Rear glass
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(40, 35, 432, 130);
-        // Black nameplate banner ("আরিফ")
-        ctx.fillStyle = '#111827';
-        ctx.beginPath();
-        ctx.roundRect(65, 190, 382, 85, 16);
-        ctx.fill();
-        ctx.strokeStyle = '#dc2626';
-        ctx.lineWidth = 6;
-        ctx.stroke();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 54px sans-serif';
-        ctx.textAlign = 'center';
+        ctx.fillStyle = '#facc15'; ctx.fillRect(0, 0, 512, 512);
+        ctx.fillStyle = '#1e293b'; ctx.fillRect(40, 35, 432, 130);
+        ctx.fillStyle = '#111827'; ctx.beginPath(); ctx.roundRect(65, 190, 382, 85, 16); ctx.fill();
+        ctx.strokeStyle = '#dc2626'; ctx.lineWidth = 6; ctx.stroke();
+        ctx.fillStyle = '#ffffff'; ctx.font = 'bold 54px sans-serif'; ctx.textAlign = 'center';
         ctx.fillText('আরিফ', 256, 250);
-        // Red bumper design & taillights
-        ctx.fillStyle = '#dc2626';
-        ctx.fillRect(20, 390, 472, 95);
-        ctx.fillStyle = '#ef4444';
-        ctx.fillRect(35, 405, 80, 30);
-        ctx.fillRect(397, 405, 80, 30);
-        ctx.fillStyle = '#fef08a';
-        ctx.fillRect(120, 405, 35, 30);
-        ctx.fillRect(357, 405, 35, 30);
+        ctx.fillStyle = '#dc2626'; ctx.fillRect(20, 390, 472, 95);
         return new THREE.CanvasTexture(c);
     }
 
-    // --- Horn Sound ---
     let audioCtx = null;
-    function playBusHorn() {
+    function playHorn() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const now = audioCtx.currentTime;
         [320, 400, 480].forEach(f => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(f, now);
-            gain.gain.setValueAtTime(0.08, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
-            osc.connect(gain); gain.connect(audioCtx.destination);
-            osc.start(now); osc.stop(now + 0.45);
+            const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(f, now);
+            gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.45);
         });
     }
 
-    // --- Scene & Lighting (Warm Dhaka Daylight Fog like Screenshot) ---
+    // --- Scene Setup ---
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0xd6d3c9);
-    scene.fog = new THREE.FogExp2(0xd6d3c9, 0.0055);
+    scene.fog = new THREE.FogExp2(0xd6d3c9, 0.005);
 
-    const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 350);
+    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 350);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     document.getElementById('game-container').appendChild(renderer.domElement);
 
     scene.add(new THREE.HemisphereLight(0xfffbeb, 0x475569, 0.85));
-    const sun = new THREE.DirectionalLight(0xfff7ed, 0.9);
-    sun.position.set(35, 70, 25);
-    sun.castShadow = true;
-    scene.add(sun);
+    const sun = new THREE.DirectionalLight(0xfff7ed, 0.9); sun.position.set(35, 70, 25); scene.add(sun);
 
-    // --- Detailed Player Bus ---
+    // --- Player Bus ---
     const playerBus = new THREE.Group();
-    const busMatSide = new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.35, metalness: 0.15 });
-    const busBackMat = new THREE.MeshStandardMaterial({ map: createBusBackTexture(), roughness: 0.35 });
-    const busMaterials = [busMatSide, busMatSide, busMatSide, busMatSide, busBackMat, busMatSide];
-
-    const bodyMesh = new THREE.Mesh(new THREE.BoxGeometry(2.55, 2.75, 9.2), busMaterials);
-    bodyMesh.position.y = 1.75;
-    bodyMesh.castShadow = true;
-    playerBus.add(bodyMesh);
-
-    // Side Windows Strip & Red Skirt
-    const sideGlass = new THREE.Mesh(
-        new THREE.BoxGeometry(2.58, 0.85, 8.4),
-        new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.1, metalness: 0.8 })
-    );
-    sideGlass.position.set(0, 2.35, -0.1);
-    playerBus.add(sideGlass);
-
-    const redSkirt = new THREE.Mesh(
-        new THREE.BoxGeometry(2.58, 0.55, 9.22),
-        new THREE.MeshStandardMaterial({ color: 0xdc2626 })
-    );
-    redSkirt.position.y = 0.85;
-    playerBus.add(redSkirt);
-
-    // Side Mirrors
-    [-1.4, 1.4].forEach(mx => {
-        const mirror = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.35, 0.2), new THREE.MeshLambertMaterial({ color: 0x111111 }));
-        mirror.position.set(mx, 2.4, -4.3);
-        playerBus.add(mirror);
-    });
-
-    // Wheels
-    const wheelGeo = new THREE.CylinderGeometry(0.55, 0.55, 0.42, 18);
-    wheelGeo.rotateZ(Math.PI / 2);
-    const wheelMat = new THREE.MeshLambertMaterial({ color: 0x18181b });
-    [[-1.25, 0.55, -2.8], [1.25, 0.55, -2.8], [-1.25, 0.55, 2.8], [1.25, 0.55, 2.8]].forEach(p => {
-        const w = new THREE.Mesh(wheelGeo, wheelMat);
-        w.position.set(...p);
-        playerBus.add(w);
-    });
+    const busMat = [
+        new THREE.MeshStandardMaterial({ color: 0xfacc15 }),
+        new THREE.MeshStandardMaterial({ color: 0xfacc15 }),
+        new THREE.MeshStandardMaterial({ color: 0xfacc15 }),
+        new THREE.MeshStandardMaterial({ color: 0xfacc15 }),
+        new THREE.MeshStandardMaterial({ map: createBusBackTexture() }),
+        new THREE.MeshStandardMaterial({ color: 0xfacc15 })
+    ];
+    const body = new THREE.Mesh(new THREE.BoxGeometry(2.55, 2.75, 9.2), busMat);
+    body.position.y = 1.75; body.castShadow = true; playerBus.add(body);
+    
+    // Skirt & Windows
+    const skirt = new THREE.Mesh(new THREE.BoxGeometry(2.58, 0.55, 9.22), new THREE.MeshStandardMaterial({ color: 0xdc2626 }));
+    skirt.position.y = 0.85; playerBus.app ? null : playerBus.add(skirt);
     scene.add(playerBus);
 
-    // --- Textured Road & Sidewalks ---
+    // --- Road & Sidewalks ---
     const road = new THREE.Mesh(
         new THREE.PlaneGeometry(22, 1000),
-        new THREE.MeshStandardMaterial({ map: createAsphaltTexture(), roughness: 0.85 })
+        new THREE.MeshStandardMaterial({ color: 0x3b4048, roughness: 0.85 })
     );
-    road.rotation.x = -Math.PI / 2;
-    road.position.z = -400;
-    road.receiveShadow = true;
-    scene.add(road);
+    road.rotation.x = -Math.PI / 2; road.position.z = -400; road.receiveShadow = true; scene.add(road);
 
-    const walkMat = new THREE.MeshStandardMaterial({ map: createSidewalkTexture(), roughness: 0.9 });
-    const leftWalk = new THREE.Mesh(new THREE.BoxGeometry(9, 0.25, 1000), walkMat);
-    leftWalk.position.set(-15.5, 0.12, -400);
-    scene.add(leftWalk);
+    const leftWalk = new THREE.Mesh(new THREE.BoxGeometry(9, 0.25, 1000), new THREE.MeshStandardMaterial({ color: 0xd6d3d1 }));
+    leftWalk.position.set(-15.5, 0.12, -400); scene.add(leftWalk);
+    const rightWalk = new THREE.Mesh(new THREE.BoxGeometry(9, 0.25, 1000), new THREE.MeshStandardMaterial({ color: 0xd6d3d1 }));
+    rightWalk.position.set(15.5, 0.12, -400); scene.add(rightWalk);
 
-    const rightWalk = new THREE.Mesh(new THREE.BoxGeometry(9, 0.25, 1000), walkMat);
-    rightWalk.position.set(15.5, 0.12, -400);
-    scene.add(rightWalk);
+    // --- Environment, Fuel Stations & Repair Shops ---
+    const envGroup = new THREE.Group(); scene.add(envGroup);
+    const stations = []; // Stores Fuel & Repair checkpoints
 
-    // Metro Rail Overhead Viaduct
-    const viaduct = new THREE.Mesh(
-        new THREE.BoxGeometry(6, 1.3, 1000),
-        new THREE.MeshStandardMaterial({ color: 0x9ca3af, roughness: 0.7 })
-    );
-    viaduct.position.set(13.5, 8.8, -400);
-    scene.add(viaduct);
+    for (let z = 20; z > -600; z -= 30) {
+        // Divider line
+        const line = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 30), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
+        line.rotation.x = -Math.PI / 2; line.position.set(0, 0.02, z); envGroup.add(line);
 
-    // --- Repeating Detailed Environment (Buildings, Metro Pillars, Zebra Crossing, Pedestrians) ---
-    const envGroup = new THREE.Group();
-    scene.add(envGroup);
+        // Buildings
+        const b = new THREE.Mesh(new THREE.BoxGeometry(10, 16, 20), new THREE.MeshStandardMaterial({ color: 0x64748b }));
+        b.position.set(-22, 8, z); envGroup.add(b);
 
-    const bTextures = [
-        createBuildingTexture('#d97706'),
-        createBuildingTexture('#a855f7'),
-        createBuildingTexture('#0284c7'),
-        createBuildingTexture('#e11d48'),
-        createBuildingTexture('#64748b')
-    ];
-
-    for (let z = 20; z > -600; z -= 25) {
-        // Road Markings
-        const centerLine = new THREE.Mesh(new THREE.PlaneGeometry(0.35, 25), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
-        centerLine.rotation.x = -Math.PI / 2;
-        centerLine.position.set(0, 0.02, z);
-        envGroup.add(centerLine);
-
-        [-5.5, 5.5].forEach(lx => {
-            const dash = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 9), new THREE.MeshBasicMaterial({ color: 0xf8fafc }));
-            dash.rotation.x = -Math.PI / 2;
-            dash.position.set(lx, 0.02, z);
-            envGroup.add(dash);
-        });
-
-        // Zebra Crossing every 100m
-        if (Math.abs(z) % 100 === 0) {
-            for (let zx = -9; zx <= 9; zx += 2.2) {
-                const zebra = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 3.8), new THREE.MeshBasicMaterial({ color: 0xffffff }));
-                zebra.rotation.x = -Math.PI / 2;
-                zebra.position.set(zx, 0.03, z);
-                envGroup.add(zebra);
-            }
-        }
-
-        // Metro Pillar with Banner Poster
-        const pillar = new THREE.Mesh(
-            new THREE.BoxGeometry(1.7, 8.8, 1.7),
-            new THREE.MeshStandardMaterial({ color: 0x78716c })
-        );
-        pillar.position.set(13.5, 4.4, z);
-        envGroup.add(pillar);
-
-        const poster = new THREE.Mesh(
-            new THREE.BoxGeometry(1.78, 2.2, 1.78),
-            new THREE.MeshBasicMaterial({ color: z % 50 === 0 ? 0xdc2626 : 0x16a34a })
-        );
-        poster.position.set(13.5, 4.5, z);
-        envGroup.add(poster);
-
-        // Textured Multi-Story Dhaka Buildings on Left
-        const h = 14 + (Math.abs(z * 7) % 18);
-        const tex = bTextures[Math.abs(z / 25) % bTextures.length];
-        const bldg = new THREE.Mesh(
-            new THREE.BoxGeometry(11, h, 20),
-            new THREE.MeshStandardMaterial({ map: tex, roughness: 0.8 })
-        );
-        bldg.position.set(-23, h / 2, z);
-        envGroup.add(bldg);
-
-        // Footover Bridge & Stairs every 175m
-        if (Math.abs(z) % 175 === 0 && z !== 0) {
-            const bridge = new THREE.Mesh(new THREE.BoxGeometry(27, 1.1, 2.6), new THREE.MeshStandardMaterial({ color: 0x475569 }));
-            bridge.position.set(0, 6.4, z);
-            envGroup.add(bridge);
-
-            [-12.5, 12.5].forEach(sx => {
-                const stair = new THREE.Mesh(new THREE.BoxGeometry(1.4, 6.4, 2.6), new THREE.MeshStandardMaterial({ color: 0x64748b }));
-                stair.position.set(sx, 3.2, z);
-                envGroup.add(stair);
-            });
-        }
-
-        // Pedestrians on Sidewalk
-        for (let p = 0; p < 2; p++) {
-            const person = new THREE.Group();
-            const shirt = new THREE.Mesh(new THREE.BoxGeometry(0.45, 0.75, 0.28), new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }));
-            shirt.position.y = 1.05;
-            const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 8), new THREE.MeshLambertMaterial({ color: 0xd97706 }));
-            head.position.y = 1.6;
-            const legs = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.7, 0.24), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
-            legs.position.y = 0.35;
-            person.add(shirt, head, legs);
-            person.position.set(-12.5 - Math.random() * 4, 0.25, z + Math.random() * 15);
-            envGroup.add(person);
+        // Fuel Station or Repair Shop every 150m
+        if (Math.abs(z) % 150 === 0 && z !== 0) {
+            const isFuel = Math.abs(z) % 300 === 0;
+            const stMesh = new THREE.Mesh(
+                new THREE.BoxGeometry(5, 4, 8),
+                new THREE.MeshStandardMaterial({ color: isFuel ? 0x0284c7 : 0x16a34a })
+            );
+            stMesh.position.set(13.2, 2, z);
+            envGroup.add(stMesh);
+            stations.push({ type: isFuel ? 'fuel' : 'repair', z: z, mesh: stMesh });
         }
     }
 
-    // --- Detailed Traffic & Road Hazards ---
-    const hazards = [];
+    // --- Traffic & Hazards ---
     const traffic = [];
-
-    function spawnHazard(zPos) {
-        if (Math.random() > 0.35) {
-            const pothole = new THREE.Mesh(
-                new THREE.CircleGeometry(1.7, 14),
-                new THREE.MeshBasicMaterial({ color: 0x18181b })
-            );
-            pothole.rotation.x = -Math.PI / 2;
-            pothole.position.set((Math.random() - 0.5) * 16, 0.03, zPos);
-            pothole.userData = { type: 'pothole' };
-            scene.add(pothole);
-            hazards.push(pothole);
-        } else {
-            const breaker = new THREE.Mesh(
-                new THREE.BoxGeometry(10, 0.26, 1.1),
-                new THREE.MeshStandardMaterial({ color: 0xfacc15 })
-            );
-            breaker.position.set(Math.random() > 0.5 ? 5.5 : -5.5, 0.13, zPos);
-            breaker.userData = { type: 'breaker' };
-            scene.add(breaker);
-            hazards.push(breaker);
-        }
-    }
-
-    function spawnTraffic(zPos) {
-        const types = ['bus', 'car', 'rickshaw'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        const v = new THREE.Group();
-
-        if (type === 'bus') {
-            const body = new THREE.Mesh(
-                new THREE.BoxGeometry(2.5, 2.65, 8.6),
-                new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? 0x1d4ed8 : 0xdc2626, roughness: 0.4 })
-            );
-            body.position.y = 1.65;
-            const win = new THREE.Mesh(new THREE.BoxGeometry(2.54, 0.8, 7.8), new THREE.MeshBasicMaterial({ color: 0x0f172a }));
-            win.position.y = 2.25;
-            v.add(body, win);
-            v.userData = { speed: 0.28 + Math.random() * 0.15, w: 2.5, l: 8.6 };
-            v.position.set(Math.random() > 0.5 ? 3.5 : 7.5, 0, zPos);
-        } else if (type === 'car') {
-            // Cabin + Hood realistic car shape
-            const lower = new THREE.Mesh(new THREE.BoxGeometry(1.9, 0.75, 4.3), new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.25 }));
-            lower.position.y = 0.65;
-            const cabin = new THREE.Mesh(new THREE.BoxGeometry(1.65, 0.65, 2.3), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-            cabin.position.set(0, 1.3, 0.1);
-            v.add(lower, cabin);
-            v.userData = { speed: 0.36 + Math.random() * 0.18, w: 1.9, l: 4.3 };
-            v.position.set(2 + Math.random() * 6.5, 0, zPos);
-        } else {
-            // Detailed Rickshaw / Auto with Hood Canopy
-            const base = new THREE.Mesh(new THREE.BoxGeometry(1.25, 0.6, 2.1), new THREE.MeshLambertMaterial({ color: 0xdc2626 }));
-            base.position.y = 0.6;
-            const hood = new THREE.Mesh(new THREE.BoxGeometry(1.28, 0.85, 1.2), new THREE.MeshLambertMaterial({ color: 0x16a34a }));
-            hood.position.set(0, 1.3, 0.35);
-            v.add(base, hood);
-            const wrongWay = Math.random() > 0.65;
-            v.userData = { speed: wrongWay ? -0.16 : 0.16, w: 1.25, l: 2.1 };
-            v.position.set(wrongWay ? -2.2 : 8.8, 0, zPos);
-        }
+    for (let z = -50; z > -550; z -= 45) {
+        const v = new THREE.Mesh(
+            new THREE.BoxGeometry(2.2, 2.5, 7.5),
+            new THREE.MeshStandardMaterial({ color: 0x2563eb })
+        );
+        v.position.set(Math.random() > 0.5 ? 3.5 : 7.5, 1.25, z);
+        v.userData = { speed: 0.25 + Math.random() * 0.15, w: 2.2, l: 7.5 };
         scene.add(v);
         traffic.push(v);
     }
 
-    for (let z = -65; z > -550; z -= 42) {
-        spawnHazard(z);
-        spawnTraffic(z - 18);
-    }
+    // --- Game Physics & Controls ---
+    let speed = 0, busX = 4.5, distance = 0, health = 100, fuel = 100;
+    let isGameOver = false, cameraMode = 0, shakeTimer = 0;
+    const input = { gas: false, brake: false };
+    let steeringAngle = 0;
 
-    // --- Controls & Physics ---
-    let speed = 0, busX = 4.5, distance = 0, health = 100, isGameOver = false, cameraMode = 0, shakeTimer = 0;
-    const input = { left: false, right: false, gas: false, brake: false };
+    // Steering Wheel Drag Mechanics
+    const steeringWheel = document.getElementById('steering-wheel');
+    let isSteering = false, startAngle = 0, currentRotation = 0;
 
-    function bindBtn(id, key) {
+    steeringWheel.addEventListener('touchstart', (e) => { isSteering = true; });
+    window.addEventListener('touchmove', (e) => {
+        if (!isSteering) return;
+        const touch = e.touches[0];
+        const rect = steeringWheel.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2;
+        const cy = rect.top + rect.height / 2;
+        const rad = Math.atan2(touch.clientY - cy, touch.clientX - cx);
+        currentRotation = rad * (180 / Math.PI);
+        steeringWheel.style.transform = `rotate(${currentRotation}deg)`;
+        steeringAngle = Math.max(-1, Math.min(1, currentRotation / 60));
+    });
+    window.addEventListener('touchend', () => {
+        isSteering = false; steeringAngle = 0; steeringWheel.style.transform = `rotate(0deg)`;
+    });
+
+    // Pedals
+    function bindPedal(id, key) {
         const el = document.getElementById(id);
-        const on = (e) => { e.preventDefault(); input[key] = true; el.classList.add('active'); };
-        const off = (e) => { e.preventDefault(); input[key] = false; el.classList.remove('active'); };
-        el.addEventListener('touchstart', on, { passive: false });
-        el.addEventListener('touchend', off, { passive: false });
-        el.addEventListener('mousedown', on); el.addEventListener('mouseup', off);
+        el.addEventListener('touchstart', (e) => { e.preventDefault(); input[key] = true; });
+        el.addEventListener('touchend', (e) => { e.preventDefault(); input[key] = false; });
+        el.addEventListener('mousedown', () => input[key] = true);
+        el.addEventListener('mouseup', () => input[key] = false);
     }
-    bindBtn('btn-left', 'left'); bindBtn('btn-right', 'right');
-    bindBtn('btn-gas', 'gas'); bindBtn('btn-brake', 'brake');
+    bindPedal('btn-gas', 'gas'); bindPedal('btn-brake', 'brake');
 
-    document.getElementById('btn-horn').addEventListener('touchstart', (e) => { e.preventDefault(); playBusHorn(); }, { passive: false });
-    document.getElementById('btn-horn').addEventListener('mousedown', playBusHorn);
-    document.getElementById('btn-cam').addEventListener('click', () => { cameraMode = cameraMode === 0 ? 1 : 0; });
+    document.getElementById('btn-horn').addEventListener('click', playHorn);
+    document.getElementById('btn-cam').addEventListener('click', () => cameraMode = cameraMode === 0 ? 1 : 0);
 
     const warningEl = document.getElementById('warning-msg');
     let warnTimer;
@@ -499,65 +294,100 @@
         clearTimeout(warnTimer); warnTimer = setTimeout(() => warningEl.style.opacity = 0, 1500);
     }
 
-    function damage(amt, msg) {
-        health = Math.max(0, health - amt); shakeTimer = 14; warn(msg);
-        const bar = document.getElementById('health-bar');
-        bar.style.width = health + '%';
-        bar.style.background = health > 50 ? '#22c55e' : (health > 25 ? '#f59e0b' : '#ef4444');
-        if (health <= 0 && !isGameOver) {
-            isGameOver = true;
-            document.getElementById('final-stats').innerText = `আপনি ${distance.toFixed(2)} কিমি পথ অতিক্রম করেছেন।`;
-            document.getElementById('game-over').style.display = 'flex';
-        }
+    function triggerGameOver(title, desc) {
+        isGameOver = true;
+        document.getElementById('go-title').innerText = title;
+        document.getElementById('go-desc').innerText = desc;
+        document.getElementById('game-over').style.display = 'flex';
     }
 
+    // --- Minimap Renderer ---
+    const mapCanvas = document.getElementById('minimap-canvas');
+    const mapCtx = mapCanvas.getContext('2d');
+    function drawMinimap() {
+        mapCtx.clearRect(0, 0, 110, 110);
+        mapCtx.fillStyle = '#334155'; mapCtx.fillRect(45, 0, 20, 110); // Road
+        // Player
+        mapCtx.fillStyle = '#facc15'; mapCtx.fillRect(50 + busX * 2, 85, 8, 12);
+        // Stations & Traffic on map
+        stations.forEach(st => {
+            const mapY = 55 + (st.mesh.position.z + distance * 50) * 0.15;
+            if (mapY >= 0 && mapY <= 110) {
+                mapCtx.fillStyle = st.type === 'fuel' ? '#38bdf8' : '#22c55e';
+                mapCtx.fillRect(75, mapY, 6, 6);
+            }
+        });
+    }
+
+    // --- Main Loop ---
     function animate() {
         requestAnimationFrame(animate);
         if (isGameOver) return;
 
+        // Fuel consumption
+        if (speed > 0.05) {
+            fuel = Math.max(0, fuel - 0.008);
+            document.getElementById('fuel-bar').style.width = fuel + '%';
+            if (fuel <= 0) { triggerGameOver('গাড়িতে ফুয়েল শেষ!', 'ফুয়েল পাম্পে না থামার কারণে গাড়ি আটকে গেছে।'); return; }
+        }
+
         if (input.gas) speed = Math.min(1.15, speed + 0.012);
-        else if (input.brake) speed = Math.max(0, speed - 0.032);
+        else if (input.brake) speed = Math.max(0, speed - 0.035);
         else speed = Math.max(0, speed - 0.004);
 
-        if (speed > 0.02) {
-            const steer = 0.14 * (0.4 + speed);
-            if (input.left) { busX -= steer; playerBus.rotation.y = 0.08; }
-            else if (input.right) { busX += steer; playerBus.rotation.y = -0.08; }
-            else playerBus.rotation.y *= 0.85;
+        if (Math.abs(steeringAngle) > 0.05) {
+            busX -= steeringAngle * 0.18 * (0.4 + speed);
         }
-        busX = Math.max(-9.5, Math.min(9.5, busX));
+        
+        // Out of bounds damage check
+        if (Math.abs(busX) > 9.2) {
+            health = Math.max(0, health - 0.5);
+            warn('⚠️ রাস্তার বাইরে চলে গেছেন! ড্যামেজ হচ্ছে');
+        }
+        busX = Math.max(-10, Math.min(10, busX));
         playerBus.position.x = busX;
 
         distance += speed * 0.015;
-        document.getElementById('speed-val').innerText = Math.round(speed * 90);
+        const currentSpeedKmh = Math.round(speed * 90);
+        document.getElementById('speed-val').innerText = currentSpeedKmh;
         document.getElementById('dist-val').innerText = distance.toFixed(2);
 
-        envGroup.children.forEach(o => { o.position.z += speed; if (o.position.z > 30) o.position.z -= 600; });
-
-        hazards.forEach(h => {
-            h.position.z += speed;
-            if (Math.abs(h.position.z) < 4.5) {
-                if (h.userData.type === 'pothole' && Math.abs(h.position.x - busX) < 2.2 && speed > 0.45 && shakeTimer === 0) {
-                    damage(6, '⚠️ গর্তে চাকা পড়েছে!'); speed *= 0.75;
-                } else if (h.userData.type === 'breaker' && Math.abs(h.position.x - busX) < 5.5 && speed > 0.55 && shakeTimer === 0) {
-                    damage(5, '⚠️ উঁচু স্পিড ব্রেকার!'); playerBus.position.y = 0.35;
-                }
-            }
-            if (h.position.z > 25) { h.position.z = -550 - Math.random() * 50; h.position.x = (Math.random() - 0.5) * 16; }
+        envGroup.children.forEach(o => {
+            o.position.z += speed;
+            if (o.position.z > 30) o.position.z -= 600;
         });
 
-        if (playerBus.position.y > 0) playerBus.position.y = Math.max(0, playerBus.position.y - 0.03);
+        stations.forEach(st => {
+            st.mesh.position.z += speed;
+            if (Math.abs(st.mesh.position.z) < 3 && Math.abs(st.mesh.position.x - busX) < 4) {
+                if (st.type === 'fuel') { fuel = 100; document.getElementById('fuel-bar').style.width = '100%'; warn('⛽ ফুল ফুয়েল রিফ্লেক্স করা হয়েছে!'); }
+                else { health = 100; document.getElementById('health-bar').style.width = '100%'; warn('🔧 গাড়ি পুরোপুরি রিপেয়ার করা হয়েছে!'); }
+            }
+            if (st.mesh.position.z > 30) st.mesh.position.z = -550;
+        });
 
         traffic.forEach(v => {
             v.position.z += (speed - v.userData.speed);
-            if (Math.abs(v.position.z) < (4.5 + v.userData.l / 2 - 0.4) && Math.abs(v.position.x - busX) < (1.28 + v.userData.w / 2 - 0.2)) {
-                if (shakeTimer === 0) { damage(20, '💥 গাড়ির সাথে ধাক্কা!'); speed = 0.1; v.position.z -= 12; }
+            const dz = Math.abs(v.position.z);
+            const dx = Math.abs(v.position.x - busX);
+            if (dz < 4.8 && dx < 2.0) {
+                if (currentSpeedKmh > 30) {
+                    triggerGameOver('দুর্ঘটনা ঘটেছে!', `৩০ কিমি/ঘণ্টার বেশি (${currentSpeedKmh} km/h) গতিতে গাড়িতে ধাক্কা লেগেছে!`);
+                } else {
+                    health = Math.max(0, health - 15);
+                    warn('💥 হালকা ধাক্কা লেগেছে!');
+                    speed = 0.05; v.position.z -= 10;
+                    document.getElementById('health-bar').style.width = health + '%';
+                    if (health <= 0) triggerGameOver('গাড়ি ধ্বংস হয়ে গেছে!', 'ড্যামেজ বেশি হওয়ায় গাড়ি আর সচল নেই।');
+                }
             }
             if (v.position.z > 30 || v.position.z < -620) v.position.z = -520 - Math.random() * 80;
         });
 
+        drawMinimap();
+
         let sx = 0, sy = 0;
-        if (shakeTimer > 0) { sx = (Math.random() - 0.5) * 0.25; sy = (Math.random() - 0.5) * 0.25; shakeTimer--; }
+        if (shakeTimer > 0) { sx = (Math.random() - 0.5) * 0.2; sy = (Math.random() - 0.5) * 0.2; shakeTimer--; }
 
         if (cameraMode === 0) {
             camera.position.set(busX * 0.85 + sx, 6.2 + sy, 12.2);
