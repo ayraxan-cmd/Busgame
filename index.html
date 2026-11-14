@@ -3,91 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BD Bus Simulator Pro - Dhaka Route</title>
+    <title>BD Bus Simulator Ultimate</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; -webkit-user-select: none; font-family: 'Segoe UI', sans-serif; }
-        body { overflow: hidden; background: #0f172a; touch-action: none; }
+        body { overflow: hidden; background: #020617; touch-action: none; }
         #game-container { width: 100vw; height: 100vh; position: relative; }
         
-        /* Top HUD & Minimap */
+        /* HUD & Minimap */
         #hud {
             position: absolute; top: 10px; left: 10px; right: 10px;
             display: flex; justify-content: space-between; align-items: flex-start;
             pointer-events: none; z-index: 10;
         }
-        .hud-box {
-            background: rgba(15, 23, 42, 0.85); color: #fff;
-            padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);
-            font-size: 11px; backdrop-filter: blur(4px);
+        .hud-panel {
+            background: rgba(15, 23, 42, 0.9); color: #fff;
+            padding: 8px 14px; border-radius: 10px; border: 1px solid rgba(251, 191, 36, 0.4);
+            font-size: 12px; backdrop-filter: blur(6px); box-shadow: 0 4px 12px rgba(0,0,0,0.5);
         }
-        .hud-title { color: #facc15; font-weight: bold; font-size: 12px; }
-        .bar-container { width: 100px; height: 6px; background: #334155; border-radius: 3px; overflow: hidden; margin-top: 3px; }
-        .bar-fill { width: 100%; height: 100%; background: #22c55e; transition: width 0.2s; }
+        .hud-title { color: #facc15; font-weight: bold; font-size: 13px; margin-bottom: 2px; }
+        .bar-bg { width: 110px; height: 7px; background: #334155; border-radius: 4px; overflow: hidden; margin-top: 3px; }
+        .bar-fill { width: 100%; height: 100%; background: #22c55e; transition: width 0.15s; }
         
-        /* Minimap Canvas */
         #minimap-canvas {
-            width: 110px; height: 110px; background: rgba(15, 23, 42, 0.9);
+            width: 100px; height: 100px; background: rgba(15, 23, 42, 0.95);
             border: 2px solid #facc15; border-radius: 50%; pointer-events: auto;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.6);
         }
 
-        #warning-msg {
-            position: absolute; top: 65px; left: 50%; transform: translateX(-50%);
-            background: rgba(220, 38, 38, 0.95); color: #fff; padding: 5px 14px;
-            border-radius: 20px; font-size: 12px; font-weight: bold;
+        #warning-banner {
+            position: absolute; top: 70px; left: 50%; transform: translateX(-50%);
+            background: rgba(220, 38, 38, 0.95); color: #fff; padding: 6px 18px;
+            border-radius: 20px; font-size: 13px; font-weight: bold;
             opacity: 0; transition: opacity 0.2s; pointer-events: none; z-index: 15;
-            white-space: nowrap;
+            white-space: nowrap; box-shadow: 0 4px 12px rgba(220,38,38,0.5);
         }
 
-        /* Two-Hand Controls (Steering on Left, Pedals on Right) */
-        #controls {
-            position: absolute; bottom: 12px; left: 12px; right: 12px;
+        /* Two-Hand Pro Controls */
+        #controls-layout {
+            position: absolute; bottom: 15px; left: 15px; right: 15px;
             display: flex; justify-content: space-between; align-items: flex-end;
             pointer-events: none; z-index: 10;
         }
-        
-        /* Steering Wheel UI */
-        #steering-container {
-            width: 150px; height: 150px; pointer-events: auto;
+
+        /* Pro Steering Wheel */
+        #steering-zone {
+            width: 160px; height: 160px; pointer-events: auto;
             position: relative; display: flex; align-items: center; justify-content: center;
         }
         #steering-wheel {
-            width: 130px; height: 130px; border-radius: 50%;
-            background: rgba(30, 41, 59, 0.85); border: 5px solid #64748b;
-            position: absolute; display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5); transform-origin: center;
+            width: 145px; height: 145px; border-radius: 50%;
+            background: radial-gradient(circle, #1e293b 40%, #0f172a 100%);
+            border: 6px solid #475569; position: absolute;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.6); transform-origin: center;
         }
-        #steering-inner {
-            width: 36px; height: 36px; border-radius: 50%; background: #facc15;
-            display: flex; align-items: center; justify-content: center; font-size: 14px; color: #000; font-weight: bold;
+        .st-bar-h { position: absolute; width: 125px; height: 8px; background: #475569; border-radius: 4px; }
+        .st-bar-v { position: absolute; width: 8px; height: 60px; background: #475569; top: 72px; border-radius: 4px; }
+        #steering-center {
+            width: 42px; height: 42px; border-radius: 50%; background: #facc15;
+            display: flex; align-items: center; justify-content: center; font-size: 16px; color: #000; font-weight: bold;
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
         }
-        #steering-bar1 { position: absolute; width: 110px; height: 6px; background: #64748b; }
-        #steering-bar2 { position: absolute; width: 6px; height: 55px; background: #64748b; top: 65px; }
 
-        /* Right Pedals & Actions */
-        .right-group { display: flex; gap: 10px; align-items: flex-end; pointer-events: auto; }
-        .action-btns { display: flex; flex-direction: column; gap: 6px; }
-        .mini-btn {
-            background: rgba(15, 23, 42, 0.85); color: #fff; border: 1px solid #facc15;
-            padding: 6px 10px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;
+        /* Right Hand Actions & Pedals */
+        .right-zone { display: flex; gap: 12px; align-items: flex-end; pointer-events: auto; }
+        .action-column { display: flex; flex-direction: column; gap: 8px; }
+        .hud-btn {
+            background: rgba(15, 23, 42, 0.9); color: #fff; border: 1px solid #facc15;
+            padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
         }
-        .pedal {
-            width: 58px; height: 85px; border-radius: 10px; color: #fff; font-weight: bold;
+        .hud-btn:active { background: #facc15; color: #000; }
+        
+        .pedal-btn {
+            width: 62px; height: 92px; border-radius: 12px; color: #fff; font-weight: bold;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            font-size: 11px; box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 2px solid rgba(255,255,255,0.3);
+            font-size: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.5); border: 2px solid rgba(255,255,255,0.4);
         }
-        #btn-gas { background: rgba(34, 197, 94, 0.85); border-color: #22c55e; }
-        #btn-brake { background: rgba(239, 68, 68, 0.85); border-color: #ef4444; }
-        .pedal:active { transform: scale(0.94); filter: brightness(1.2); }
+        #pedal-gas { background: rgba(34, 197, 94, 0.9); border-color: #22c55e; }
+        #pedal-brake { background: rgba(239, 68, 68, 0.9); border-color: #ef4444; }
+        .pedal-btn:active { transform: scale(0.93); filter: brightness(1.25); }
 
-        /* Game Over Modal */
-        #game-over {
-            position: absolute; inset: 0; background: rgba(0, 0, 0, 0.88);
+        /* Game Over Popup */
+        #game-over-screen {
+            position: absolute; inset: 0; background: rgba(2, 6, 23, 0.92);
             display: none; flex-direction: column; align-items: center; justify-content: center;
-            color: #fff; z-index: 30; text-align: center; padding: 20px;
+            color: #fff; z-index: 30; text-align: center; padding: 25px;
         }
-        #restart-btn {
-            background: #facc15; color: #000; border: none; padding: 10px 24px;
-            font-size: 15px; font-weight: bold; border-radius: 8px; margin-top: 12px; cursor: pointer;
+        #restart-game-btn {
+            background: #facc15; color: #000; border: none; padding: 12px 28px;
+            font-size: 16px; font-weight: bold; border-radius: 10px; margin-top: 16px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(250,204,21,0.4);
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -96,48 +102,50 @@
 
 <div id="game-container">
     <div id="hud">
-        <div class="hud-box">
-            <div class="hud-title">আরিফ পরিবহন (Pro)</div>
-            <div>গতি: <span id="speed-val">0</span> km/h | দূরত্ব: <span id="dist-val">0.0</span> km</div>
-            <div style="margin-top:2px;">ড্যামেজ:</div>
-            <div class="bar-container"><div id="health-bar" class="bar-fill"></div></div>
-            <div style="margin-top:2px;">ফুয়েল:</div>
-            <div class="bar-container"><div id="fuel-bar" class="bar-fill" style="background:#38bdf8;"></div></div>
+        <div class="hud-panel">
+            <div class="hud-title">🚌 আরিফ পরিবহন (Pro)</div>
+            <div>গতি: <span id="speed-display">0</span> কিমি/ঘণ্টা</div>
+            <div>দূরত্ব: <span id="dist-display">0.0</span> কিমি</div>
+            <div style="margin-top:4px;">ড্যামেজ:</div>
+            <div class="bar-bg"><div id="health-bar" class="bar-fill"></div></div>
+            <div style="margin-top:4px;">ফুয়েল:</div>
+            <div class="bar-bg"><div id="fuel-bar" class="bar-fill" style="background:#38bdf8;"></div></div>
         </div>
-        <canvas id="minimap-canvas" width="110" height="110"></canvas>
+        <canvas id="minimap-canvas" width="100" height="100"></canvas>
     </div>
 
-    <div id="warning-msg">⚠️ সতর্কবার্তা!</div>
+    <div id="warning-banner">⚠️ সতর্কবার্তা!</div>
 
-    <div id="controls">
-        <!-- Two-hand Steering Wheel -->
-        <div id="steering-container">
+    <div id="controls-layout">
+        <!-- Pro Steering Wheel on Left -->
+        <div id="steering-zone">
             <div id="steering-wheel">
-                <div id="steering-bar1"></div>
-                <div id="steering-bar2"></div>
-                <div id="steering-inner">🛞</div>
+                <div class="st-bar-h"></div>
+                <div class="st-bar-v"></div>
+                <div id="steering-center">🛞</div>
             </div>
         </div>
 
-        <div class="right-group">
-            <div class="action-btns">
-                <button class="mini-btn" id="btn-horn">📯 হর্ন</button>
-                <button class="mini-btn" id="btn-cam">📷 ক্যামেরা</button>
+        <!-- Pedals & Actions on Right -->
+        <div class="right-zone">
+            <div class="action-column">
+                <button class="hud-btn" id="horn-btn">📯 হর্ন</button>
+                <button class="hud-btn" id="cam-btn">📷 ক্যামেরা</button>
             </div>
-            <div class="pedal" id="btn-brake">🛑<span>ব্রেক</span></div>
-            <div class="pedal" id="btn-gas">🚀<span>গ্যাস</span></div>
+            <div class="pedal-btn" id="pedal-brake">🛑<span>ব্রেক</span></div>
+            <div class="pedal-btn" id="pedal-gas">🚀<span>গ্যাস</span></div>
         </div>
     </div>
 
-    <div id="game-over">
-        <h1 id="go-title" style="color:#ef4444; font-size:26px;">গেম ওভার!</h1>
-        <p id="go-desc" style="margin-top:6px; font-size:14px; color:#cbd5e1;"></p>
-        <button id="restart-btn" onclick="location.reload()">পুনরায় খেলুন</button>
+    <div id="game-over-screen">
+        <h1 id="go-reason" style="color:#ef4444; font-size:28px; margin-bottom:8px;">গেম ওভার!</h1>
+        <p id="go-stats" style="font-size:15px; color:#cbd5e1;"></p>
+        <button id="restart-game-btn" onclick="location.reload()">পুনরায় যাত্রা শুরু করুন</button>
     </div>
 </div>
 
 <script>
-    // --- Textures & Visual Helpers ---
+    // --- Realistic Textures ---
     function createBusBackTexture() {
         const c = document.createElement('canvas'); c.width = 512; c.height = 512;
         const ctx = c.getContext('2d');
@@ -152,111 +160,110 @@
     }
 
     let audioCtx = null;
-    function playHorn() {
+    function playHornSound() {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const now = audioCtx.currentTime;
-        [320, 400, 480].forEach(f => {
+        [310, 390, 470].forEach(f => {
             const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
             osc.type = 'sawtooth'; osc.frequency.setValueAtTime(f, now);
-            gain.gain.setValueAtTime(0.08, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+            gain.gain.setValueAtTime(0.09, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
             osc.connect(gain); gain.connect(audioCtx.destination); osc.start(now); osc.stop(now + 0.45);
         });
     }
 
     // --- Scene Setup ---
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xd6d3c9);
-    scene.fog = new THREE.FogExp2(0xd6d3c9, 0.005);
+    scene.background = new THREE.Color(0x0f172a);
+    scene.fog = new THREE.FogExp2(0x0f172a, 0.0045);
 
-    const camera = new THREE.PerspectiveCamera(55, window.innerWidth / window.innerHeight, 0.1, 350);
+    const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.1, 400);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.shadowMap.enabled = true;
     document.getElementById('game-container').appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xfffbeb, 0x475569, 0.85));
-    const sun = new THREE.DirectionalLight(0xfff7ed, 0.9); sun.position.set(35, 70, 25); scene.add(sun);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 0.9));
+    const sun = new THREE.DirectionalLight(0xfff7ed, 1.0);
+    sun.position.set(40, 80, 30);
+    sun.castShadow = true;
+    scene.add(sun);
 
     // --- Player Bus ---
     const playerBus = new THREE.Group();
-    const busMat = [
-        new THREE.MeshStandardMaterial({ color: 0xfacc15 }),
-        new THREE.MeshStandardMaterial({ color: 0xfacc15 }),
-        new THREE.MeshStandardMaterial({ color: 0xfacc15 }),
-        new THREE.MeshStandardMaterial({ color: 0xfacc15 }),
+    const busMaterials = [
+        new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.3 }),
+        new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.3 }),
+        new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.3 }),
+        new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.3 }),
         new THREE.MeshStandardMaterial({ map: createBusBackTexture() }),
-        new THREE.MeshStandardMaterial({ color: 0xfacc15 })
+        new THREE.MeshStandardMaterial({ color: 0xfacc15, roughness: 0.3 })
     ];
-    const body = new THREE.Mesh(new THREE.BoxGeometry(2.55, 2.75, 9.2), busMat);
-    body.position.y = 1.75; body.castShadow = true; playerBus.add(body);
+    const busBody = new THREE.Mesh(new THREE.BoxGeometry(2.55, 2.75, 9.2), busMaterials);
+    busBody.position.y = 1.75; busBody.castShadow = true; playerBus.add(busBody);
     
-    // Skirt & Windows
-    const skirt = new THREE.Mesh(new THREE.BoxGeometry(2.58, 0.55, 9.22), new THREE.MeshStandardMaterial({ color: 0xdc2626 }));
-    skirt.position.y = 0.85; playerBus.app ? null : playerBus.add(skirt);
+    const busSkirt = new THREE.Mesh(new THREE.BoxGeometry(2.58, 0.55, 9.22), new THREE.MeshStandardMaterial({ color: 0xdc2626 }));
+    busSkirt.position.y = 0.85; playerBus.add(busSkirt);
     scene.add(playerBus);
 
     // --- Road & Sidewalks ---
     const road = new THREE.Mesh(
         new THREE.PlaneGeometry(22, 1000),
-        new THREE.MeshStandardMaterial({ color: 0x3b4048, roughness: 0.85 })
+        new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 })
     );
     road.rotation.x = -Math.PI / 2; road.position.z = -400; road.receiveShadow = true; scene.add(road);
 
-    const leftWalk = new THREE.Mesh(new THREE.BoxGeometry(9, 0.25, 1000), new THREE.MeshStandardMaterial({ color: 0xd6d3d1 }));
+    const sidewalkMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9 });
+    const leftWalk = new THREE.Mesh(new THREE.BoxGeometry(9, 0.25, 1000), sidewalkMat);
     leftWalk.position.set(-15.5, 0.12, -400); scene.add(leftWalk);
-    const rightWalk = new THREE.Mesh(new THREE.BoxGeometry(9, 0.25, 1000), new THREE.MeshStandardMaterial({ color: 0xd6d3d1 }));
+    const rightWalk = new THREE.Mesh(new THREE.BoxGeometry(9, 0.25, 1000), sidewalkMat);
     rightWalk.position.set(15.5, 0.12, -400); scene.add(rightWalk);
 
-    // --- Environment, Fuel Stations & Repair Shops ---
+    // --- Environment, Fuel & Repair Stations ---
     const envGroup = new THREE.Group(); scene.add(envGroup);
-    const stations = []; // Stores Fuel & Repair checkpoints
+    const stations = [];
 
     for (let z = 20; z > -600; z -= 30) {
-        // Divider line
         const line = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 30), new THREE.MeshBasicMaterial({ color: 0xfacc15 }));
         line.rotation.x = -Math.PI / 2; line.position.set(0, 0.02, z); envGroup.add(line);
 
-        // Buildings
-        const b = new THREE.Mesh(new THREE.BoxGeometry(10, 16, 20), new THREE.MeshStandardMaterial({ color: 0x64748b }));
-        b.position.set(-22, 8, z); envGroup.add(b);
+        const bldg = new THREE.Mesh(new THREE.BoxGeometry(10, 18, 20), new THREE.MeshStandardMaterial({ color: 0x334155 }));
+        bldg.position.set(-22, 9, z); envGroup.add(bldg);
 
-        // Fuel Station or Repair Shop every 150m
         if (Math.abs(z) % 150 === 0 && z !== 0) {
             const isFuel = Math.abs(z) % 300 === 0;
-            const stMesh = new THREE.Mesh(
+            const st = new THREE.Mesh(
                 new THREE.BoxGeometry(5, 4, 8),
                 new THREE.MeshStandardMaterial({ color: isFuel ? 0x0284c7 : 0x16a34a })
             );
-            stMesh.position.set(13.2, 2, z);
-            envGroup.add(stMesh);
-            stations.push({ type: isFuel ? 'fuel' : 'repair', z: z, mesh: stMesh });
+            st.position.set(13.2, 2, z);
+            envGroup.add(st);
+            stations.push({ type: isFuel ? 'fuel' : 'repair', z: z, mesh: st });
         }
     }
 
-    // --- Traffic & Hazards ---
+    // --- Traffic ---
     const traffic = [];
     for (let z = -50; z > -550; z -= 45) {
-        const v = new THREE.Mesh(
+        const tv = new THREE.Mesh(
             new THREE.BoxGeometry(2.2, 2.5, 7.5),
-            new THREE.MeshStandardMaterial({ color: 0x2563eb })
+            new THREE.MeshStandardMaterial({ color: 0x2563eb, roughness: 0.4 })
         );
-        v.position.set(Math.random() > 0.5 ? 3.5 : 7.5, 1.25, z);
-        v.userData = { speed: 0.25 + Math.random() * 0.15, w: 2.2, l: 7.5 };
-        scene.add(v);
-        traffic.push(v);
+        tv.position.set(Math.random() > 0.5 ? 3.5 : 7.5, 1.25, z);
+        tv.userData = { speed: 0.25 + Math.random() * 0.15, w: 2.2, l: 7.5 };
+        scene.add(tv);
+        traffic.push(tv);
     }
 
-    // --- Game Physics & Controls ---
+    // --- Controls & Steering Mechanics ---
     let speed = 0, busX = 4.5, distance = 0, health = 100, fuel = 100;
     let isGameOver = false, cameraMode = 0, shakeTimer = 0;
     const input = { gas: false, brake: false };
     let steeringAngle = 0;
 
-    // Steering Wheel Drag Mechanics
     const steeringWheel = document.getElementById('steering-wheel');
-    let isSteering = false, startAngle = 0, currentRotation = 0;
+    let isSteering = false;
 
     steeringWheel.addEventListener('touchstart', (e) => { isSteering = true; });
     window.addEventListener('touchmove', (e) => {
@@ -265,92 +272,87 @@
         const rect = steeringWheel.getBoundingClientRect();
         const cx = rect.left + rect.width / 2;
         const cy = rect.top + rect.height / 2;
-        const rad = Math.atan2(touch.clientY - cy, touch.clientX - cx);
-        currentRotation = rad * (180 / Math.PI);
-        steeringWheel.style.transform = `rotate(${currentRotation}deg)`;
-        steeringAngle = Math.max(-1, Math.min(1, currentRotation / 60));
+        let rot = Math.atan2(touch.clientY - cy, touch.clientX - cx) * (180 / Math.PI);
+        rot = Math.max(-80, Math.min(80, rot));
+        steeringWheel.style.transform = `rotate(${rot}deg)`;
+        steeringAngle = rot / 75; // Pro steering ratio
     });
     window.addEventListener('touchend', () => {
         isSteering = false; steeringAngle = 0; steeringWheel.style.transform = `rotate(0deg)`;
     });
 
-    // Pedals
     function bindPedal(id, key) {
         const el = document.getElementById(id);
-        el.addEventListener('touchstart', (e) => { e.preventDefault(); input[key] = true; });
-        el.addEventListener('touchend', (e) => { e.preventDefault(); input[key] = false; });
-        el.addEventListener('mousedown', () => input[key] = true);
-        el.addEventListener('mouseup', () => input[key] = false);
+        const on = (e) => { e.preventDefault(); input[key] = true; };
+        const off = (e) => { e.preventDefault(); input[key] = false; };
+        el.addEventListener('touchstart', on, { passive: false });
+        el.addEventListener('touchend', off, { passive: false });
+        el.addEventListener('mousedown', on); el.addEventListener('mouseup', off);
     }
-    bindPedal('btn-gas', 'gas'); bindPedal('btn-brake', 'brake');
+    bindPedal('pedal-gas', 'gas'); bindPedal('pedal-brake', 'brake');
 
-    document.getElementById('btn-horn').addEventListener('click', playHorn);
-    document.getElementById('btn-cam').addEventListener('click', () => cameraMode = cameraMode === 0 ? 1 : 0);
+    document.getElementById('horn-btn').addEventListener('click', playHornSound);
+    document.getElementById('cam-btn').addEventListener('click', () => cameraMode = cameraMode === 0 ? 1 : 0);
 
-    const warningEl = document.getElementById('warning-msg');
-    let warnTimer;
-    function warn(msg) {
-        warningEl.innerText = msg; warningEl.style.opacity = 1;
-        clearTimeout(warnTimer); warnTimer = setTimeout(() => warningEl.style.opacity = 0, 1500);
+    const warnBanner = document.getElementById('warning-banner');
+    let warnTimeout;
+    function showWarning(txt) {
+        warnBanner.innerText = txt; warnBanner.style.opacity = 1;
+        clearTimeout(warnTimeout); warnTimeout = setTimeout(() => warnBanner.style.opacity = 0, 1500);
     }
 
-    function triggerGameOver(title, desc) {
+    function triggerGameOver(reason, stats) {
         isGameOver = true;
-        document.getElementById('go-title').innerText = title;
-        document.getElementById('go-desc').innerText = desc;
-        document.getElementById('game-over').style.display = 'flex';
+        document.getElementById('go-reason').innerText = reason;
+        document.getElementById('go-stats').innerText = stats;
+        document.getElementById('game-over-screen').style.display = 'flex';
     }
 
-    // --- Minimap Renderer ---
-    const mapCanvas = document.getElementById('minimap-canvas');
-    const mapCtx = mapCanvas.getContext('2d');
-    function drawMinimap() {
-        mapCtx.clearRect(0, 0, 110, 110);
-        mapCtx.fillStyle = '#334155'; mapCtx.fillRect(45, 0, 20, 110); // Road
-        // Player
-        mapCtx.fillStyle = '#facc15'; mapCtx.fillRect(50 + busX * 2, 85, 8, 12);
-        // Stations & Traffic on map
+    // --- Minimap ---
+    const mapCtx = document.getElementById('minimap-canvas').getContext('2d');
+    function renderMinimap() {
+        mapCtx.clearRect(0, 0, 100, 100);
+        mapCtx.fillStyle = '#334155'; mapCtx.fillRect(40, 0, 20, 100);
+        mapCtx.fillStyle = '#facc15'; mapCtx.fillRect(45 + busX * 2, 78, 8, 12);
         stations.forEach(st => {
-            const mapY = 55 + (st.mesh.position.z + distance * 50) * 0.15;
-            if (mapY >= 0 && mapY <= 110) {
+            const my = 50 + (st.mesh.position.z + distance * 50) * 0.15;
+            if (my >= 0 && my <= 100) {
                 mapCtx.fillStyle = st.type === 'fuel' ? '#38bdf8' : '#22c55e';
-                mapCtx.fillRect(75, mapY, 6, 6);
+                mapCtx.fillRect(70, my, 6, 6);
             }
         });
     }
 
-    // --- Main Loop ---
-    function animate() {
-        requestAnimationFrame(animate);
+    // --- Main Game Loop ---
+    function gameLoop() {
+        requestAnimationFrame(gameLoop);
         if (isGameOver) return;
 
-        // Fuel consumption
         if (speed > 0.05) {
-            fuel = Math.max(0, fuel - 0.008);
+            fuel = Math.max(0, fuel - 0.007);
             document.getElementById('fuel-bar').style.width = fuel + '%';
-            if (fuel <= 0) { triggerGameOver('গাড়িতে ফুয়েল শেষ!', 'ফুয়েল পাম্পে না থামার কারণে গাড়ি আটকে গেছে।'); return; }
+            if (fuel <= 0) { triggerGameOver('গাড়িতে ফুয়েল শেষ!', 'ফুয়েল ফুরিয়ে যাওয়ায় বাস বন্ধ হয়ে গেছে।'); return; }
         }
 
-        if (input.gas) speed = Math.min(1.15, speed + 0.012);
+        if (input.gas) speed = Math.min(1.2, speed + 0.012);
         else if (input.brake) speed = Math.max(0, speed - 0.035);
         else speed = Math.max(0, speed - 0.004);
 
-        if (Math.abs(steeringAngle) > 0.05) {
-            busX -= steeringAngle * 0.18 * (0.4 + speed);
+        if (Math.abs(steeringAngle) > 0.02) {
+            busX -= steeringAngle * 0.2 * (0.35 + speed);
         }
-        
-        // Out of bounds damage check
-        if (Math.abs(busX) > 9.2) {
-            health = Math.max(0, health - 0.5);
-            warn('⚠️ রাস্তার বাইরে চলে গেছেন! ড্যামেজ হচ্ছে');
+
+        if (Math.abs(busX) > 9.3) {
+            health = Math.max(0, health - 0.4);
+            showWarning('⚠️ রাস্তার বাইরে ড্রাইভ করছেন!');
         }
         busX = Math.max(-10, Math.min(10, busX));
         playerBus.position.x = busX;
 
         distance += speed * 0.015;
-        const currentSpeedKmh = Math.round(speed * 90);
-        document.getElementById('speed-val').innerText = currentSpeedKmh;
-        document.getElementById('dist-val').innerText = distance.toFixed(2);
+        const kmh = Math.round(speed * 90);
+        document.getElementById('speed-display').innerText = kmh;
+        document.getElementById('dist-display').innerText = distance.toFixed(2);
 
         envGroup.children.forEach(o => {
             o.position.z += speed;
@@ -360,31 +362,29 @@
         stations.forEach(st => {
             st.mesh.position.z += speed;
             if (Math.abs(st.mesh.position.z) < 3 && Math.abs(st.mesh.position.x - busX) < 4) {
-                if (st.type === 'fuel') { fuel = 100; document.getElementById('fuel-bar').style.width = '100%'; warn('⛽ ফুল ফুয়েল রিফ্লেক্স করা হয়েছে!'); }
-                else { health = 100; document.getElementById('health-bar').style.width = '100%'; warn('🔧 গাড়ি পুরোপুরি রিপেয়ার করা হয়েছে!'); }
+                if (st.type === 'fuel') { fuel = 100; document.getElementById('fuel-bar').style.width = '100%'; showWarning('⛽ ফুল ফুয়েল রিফ্লেক্স সম্পন্ন!'); }
+                else { health = 100; document.getElementById('health-bar').style.width = '100%'; showWarning('🔧 গাড়ি সম্পূর্ণ রিপেয়ার করা হয়েছে!'); }
             }
             if (st.mesh.position.z > 30) st.mesh.position.z = -550;
         });
 
-        traffic.forEach(v => {
-            v.position.z += (speed - v.userData.speed);
-            const dz = Math.abs(v.position.z);
-            const dx = Math.abs(v.position.x - busX);
-            if (dz < 4.8 && dx < 2.0) {
-                if (currentSpeedKmh > 30) {
-                    triggerGameOver('দুর্ঘটনা ঘটেছে!', `৩০ কিমি/ঘণ্টার বেশি (${currentSpeedKmh} km/h) গতিতে গাড়িতে ধাক্কা লেগেছে!`);
+        traffic.forEach(tv => {
+            tv.position.z += (speed - tv.userData.speed);
+            if (Math.abs(tv.position.z) < 4.8 && Math.abs(tv.position.x - busX) < 2.0) {
+                if (kmh > 30) {
+                    triggerGameOver('দুর্ঘটনা ঘটেছে!', `৩০ কিমি/ঘণ্টার বেশি (${kmh} km/h) গতিতে গাড়িতে সজোরে ধাক্কা লেগেছে!`);
                 } else {
-                    health = Math.max(0, health - 15);
-                    warn('💥 হালকা ধাক্কা লেগেছে!');
-                    speed = 0.05; v.position.z -= 10;
+                    health = Math.max(0, health - 18);
+                    showWarning('💥 ট্রাফিকের সাথে ধাক্কা লেগেছে!');
+                    speed = 0.05; tv.position.z -= 10;
                     document.getElementById('health-bar').style.width = health + '%';
-                    if (health <= 0) triggerGameOver('গাড়ি ধ্বংস হয়ে গেছে!', 'ড্যামেজ বেশি হওয়ায় গাড়ি আর সচল নেই।');
+                    if (health <= 0) triggerGameOver('বাস পুরোপুরি ধ্বংস!', 'ড্যামেজ লিমিট পার হয়ে যাওয়ায় গেম ওভার।');
                 }
             }
-            if (v.position.z > 30 || v.position.z < -620) v.position.z = -520 - Math.random() * 80;
+            if (tv.position.z > 30 || tv.position.z < -620) tv.position.z = -520 - Math.random() * 80;
         });
 
-        drawMinimap();
+        renderMinimap();
 
         let sx = 0, sy = 0;
         if (shakeTimer > 0) { sx = (Math.random() - 0.5) * 0.2; sy = (Math.random() - 0.5) * 0.2; shakeTimer--; }
@@ -404,7 +404,7 @@
         camera.updateProjectionMatrix();
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
-    animate();
+    gameLoop();
 </script>
 </body>
 </html>
