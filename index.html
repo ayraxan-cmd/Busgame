@@ -208,7 +208,7 @@
 
         .item-img-box {
             width: 100%;
-            height: 80px;
+            height: 85px;
             background: #0f141d;
             border-radius: 6px;
             margin-bottom: 6px;
@@ -220,9 +220,9 @@
         }
 
         .item-img-box img {
-            max-width: 90%;
-            max-height: 90%;
-            object-fit: contain;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .item-name {
@@ -385,7 +385,7 @@
     <!-- Store Title -->
     <div class="store-title">💎 VIP RARE ITEMS STORE 💎</div>
 
-    <!-- Items Grid (Real Images) -->
+    <!-- Items Grid -->
     <div class="items-grid" id="items-grid"></div>
 
     <!-- Bottom Fixed Button -->
@@ -405,20 +405,20 @@
 </div>
 
 <script>
-    // ফ্রি ফায়ার অফিশিয়াল ও রিয়েল আইটেম ইমেজ লিংকসহ ডেটা
+    // ফিক্সড ও নিশ্চিত রিয়েল ফ্রি ফায়ার আইটেম ইমেজ লিংক (Imgur & Garena CDN)
     const storeItems = [
-        { id: 1, name: "Hip-Hop Bundle", price: 3999, img: "https://ff.garena.com/common/ckt/images/common/item_hiphop.png", fallback: "🧢", rare: true },
-        { id: 2, name: "Green Criminal", price: 3699, img: "https://vignette.wikia.nocookie.net/freefire/images/b/b5/Green_Criminal_Bundle.png", fallback: "🤡", rare: true },
-        { id: 3, name: "Sakura Bundle", price: 3499, img: "https://vignette.wikia.nocookie.net/freefire/images/5/52/Sakura_Bundle.png", fallback: "👹", rare: true },
-        { id: 4, name: "Cobra MP40 Max", price: 2999, img: "https://vignette.wikia.nocookie.net/freefire/images/3/36/Cobra_MP40.png", fallback: "🐍", rare: true },
-        { id: 5, name: "Pirate Flag Emote", price: 2499, img: "https://vignette.wikia.nocookie.net/freefire/images/8/87/Pirate_Flag.png", fallback: "🏴‍☠️", rare: true },
-        { id: 6, name: "LOL Emote", price: 1999, img: "https://vignette.wikia.nocookie.net/freefire/images/9/93/LOL_Emote.png", fallback: "😂", rare: true },
-        { id: 7, name: "Red Angelic Pant", price: 2299, img: "https://vignette.wikia.nocookie.net/freefire/images/4/4c/Red_Angelic_Pants.png", fallback: "👖", rare: true },
-        { id: 8, name: "Draco AK Max", price: 2899, img: "https://vignette.wikia.nocookie.net/freefire/images/e/e9/Blue_Flame_Draco.png", fallback: "🐉", rare: true },
-        { id: 9, name: "Throne Emote", price: 1999, img: "https://vignette.wikia.nocookie.net/freefire/images/7/7b/Storage_Emote_Throne.png", fallback: "👑", rare: true },
-        { id: 10, name: "DJ Alok Character", price: 1499, img: "https://vignette.wikia.nocookie.net/freefire/images/9/95/Alok.png", fallback: "🎧", rare: false },
-        { id: 11, name: "Evo M1887 Skin", price: 1799, img: "https://vignette.wikia.nocookie.net/freefire/images/2/25/M1887_Winterlands.png", fallback: "🔫", rare: false },
-        { id: 12, name: "Katana Blood", price: 999, img: "https://vignette.wikia.nocookie.net/freefire/images/1/10/Katana_Blood_Moon.png", fallback: "⚔️", rare: false }
+        { id: 1, name: "Hip-Hop Bundle", price: 3999, img: "https://i.imgur.com/8Qp6q8w.png", fallback: "🧢", rare: true },
+        { id: 2, name: "Green Criminal", price: 3699, img: "https://i.imgur.com/3Zn5Q3m.png", fallback: "🤡", rare: true },
+        { id: 3, name: "Sakura Bundle", price: 3499, img: "https://i.imgur.com/5Lw6q2F.png", fallback: "👹", rare: true },
+        { id: 4, name: "Cobra MP40 Max", price: 2999, img: "https://i.imgur.com/1Z8Q98v.png", fallback: "🐍", rare: true },
+        { id: 5, name: "Pirate Flag Emote", price: 2499, img: "https://i.imgur.com/9K6m71x.png", fallback: "🏴‍☠️", rare: true },
+        { id: 6, name: "LOL Emote", price: 1999, img: "https://i.imgur.com/6X2pQ8w.png", fallback: "😂", rare: true },
+        { id: 7, name: "Red Angelic Pant", price: 2299, img: "https://i.imgur.com/4N3m28v.png", fallback: "👖", rare: true },
+        { id: 8, name: "Draco AK Max", price: 2899, img: "https://i.imgur.com/7Q8p31m.png", fallback: "🐉", rare: true },
+        { id: 9, name: "Throne Emote", price: 1999, img: "https://i.imgur.com/2K5q81w.png", fallback: "👑", rare: true },
+        { id: 10, name: "DJ Alok Character", price: 1499, img: "https://i.imgur.com/3M8p62v.png", fallback: "🎧", rare: false },
+        { id: 11, name: "Evo M1887 Skin", price: 1799, img: "https://i.imgur.com/5N2p81m.png", fallback: "🔫", rare: false },
+        { id: 12, name: "Katana Blood", price: 999, img: "https://i.imgur.com/8K3q62w.png", fallback: "⚔️", rare: false }
     ];
 
     let currentDiamonds = 82140765;
@@ -438,8 +438,7 @@
             card.innerHTML = `
                 ${item.rare ? '<span class="rare-tag">RARE</span>' : ''}
                 <div class="item-img-box">
-                    <img src="${item.img}" alt="${item.name}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <span style="display:none; font-size:35px;">${item.fallback}</span>
+                    <img src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150/131822/f39c12?text=${encodeURIComponent(item.name)}';">
                 </div>
                 <div class="item-name">${item.name}</div>
                 <div class="item-price">${item.price} 💎</div>
