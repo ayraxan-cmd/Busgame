@@ -208,7 +208,7 @@
 
         .item-img-box {
             width: 100%;
-            height: 85px;
+            height: 80px;
             background: #0f141d;
             border-radius: 6px;
             margin-bottom: 6px;
@@ -217,12 +217,7 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
-        }
-
-        .item-img-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            font-size: 38px;
         }
 
         .item-name {
@@ -405,20 +400,20 @@
 </div>
 
 <script>
-    // ফিক্সড ও নিশ্চিত রিয়েল ফ্রি ফায়ার আইটেম ইমেজ লিংক (Imgur & Garena CDN)
+    // স্টাইলিশ ও পারফেক্ট আইকনসহ ডেটা লিস্ট (ভাঙ্গা বা ব্রোকেন লিংকের ঝামেলা মুক্ত)
     const storeItems = [
-        { id: 1, name: "Hip-Hop Bundle", price: 3999, img: "https://i.imgur.com/8Qp6q8w.png", fallback: "🧢", rare: true },
-        { id: 2, name: "Green Criminal", price: 3699, img: "https://i.imgur.com/3Zn5Q3m.png", fallback: "🤡", rare: true },
-        { id: 3, name: "Sakura Bundle", price: 3499, img: "https://i.imgur.com/5Lw6q2F.png", fallback: "👹", rare: true },
-        { id: 4, name: "Cobra MP40 Max", price: 2999, img: "https://i.imgur.com/1Z8Q98v.png", fallback: "🐍", rare: true },
-        { id: 5, name: "Pirate Flag Emote", price: 2499, img: "https://i.imgur.com/9K6m71x.png", fallback: "🏴‍☠️", rare: true },
-        { id: 6, name: "LOL Emote", price: 1999, img: "https://i.imgur.com/6X2pQ8w.png", fallback: "😂", rare: true },
-        { id: 7, name: "Red Angelic Pant", price: 2299, img: "https://i.imgur.com/4N3m28v.png", fallback: "👖", rare: true },
-        { id: 8, name: "Draco AK Max", price: 2899, img: "https://i.imgur.com/7Q8p31m.png", fallback: "🐉", rare: true },
-        { id: 9, name: "Throne Emote", price: 1999, img: "https://i.imgur.com/2K5q81w.png", fallback: "👑", rare: true },
-        { id: 10, name: "DJ Alok Character", price: 1499, img: "https://i.imgur.com/3M8p62v.png", fallback: "🎧", rare: false },
-        { id: 11, name: "Evo M1887 Skin", price: 1799, img: "https://i.imgur.com/5N2p81m.png", fallback: "🔫", rare: false },
-        { id: 12, name: "Katana Blood", price: 999, img: "https://i.imgur.com/8K3q62w.png", fallback: "⚔️", rare: false }
+        { id: 1, name: "Hip-Hop Bundle", price: 3999, icon: "🧢", rare: true },
+        { id: 2, name: "Green Criminal", price: 3699, icon: "🤡", rare: true },
+        { id: 3, name: "Sakura Bundle", price: 3499, icon: "👹", rare: true },
+        { id: 4, name: "Cobra MP40 Max", price: 2999, icon: "🐍", rare: true },
+        { id: 5, name: "Pirate Flag Emote", price: 2499, icon: "🏴‍☠️", rare: true },
+        { id: 6, name: "LOL Emote", price: 1999, icon: "😂", rare: true },
+        { id: 7, name: "Red Angelic Pant", price: 2299, icon: "👖", rare: true },
+        { id: 8, name: "Draco AK Max", price: 2899, icon: "🐉", rare: true },
+        { id: 9, name: "Throne Emote", price: 1999, icon: "👑", rare: true },
+        { id: 10, name: "DJ Alok Character", price: 1499, icon: "🎧", rare: false },
+        { id: 11, name: "Evo M1887 Skin", price: 1799, icon: "🔫", rare: false },
+        { id: 12, name: "Katana Blood", price: 999, icon: "⚔️", rare: false }
     ];
 
     let currentDiamonds = 82140765;
@@ -437,9 +432,7 @@
 
             card.innerHTML = `
                 ${item.rare ? '<span class="rare-tag">RARE</span>' : ''}
-                <div class="item-img-box">
-                    <img src="${item.img}" alt="${item.name}" onerror="this.onerror=null; this.src='https://via.placeholder.com/150/131822/f39c12?text=${encodeURIComponent(item.name)}';">
-                </div>
+                <div class="item-img-box">${item.icon}</div>
                 <div class="item-name">${item.name}</div>
                 <div class="item-price">${item.price} 💎</div>
             `;
